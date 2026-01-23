@@ -17,18 +17,18 @@ jobs:
           - os: windows-latest
             preset: msvc-release
 
-          # Ubuntu (GCC / Clang) ※Preset名は "wsl-..." のまま流用
+          # Ubuntu (GCC / Clang)
           - os: ubuntu-latest
-            preset: wsl-gcc-release
+            preset: linux-gcc-release
             install: sudo apt-get update && sudo apt-get install -y ninja-build g++ cmake
 
           - os: ubuntu-latest
-            preset: wsl-clang-release
+            preset: linux-clang-release
             install: sudo apt-get update && sudo apt-get install -y ninja-build clang cmake
 
           # macOS (Clang)
           - os: macos-latest
-            preset: wsl-clang-release
+            preset: linux-clang-release
             install: brew update && brew install ninja cmake
 
     runs-on: ${{ matrix.os }}
