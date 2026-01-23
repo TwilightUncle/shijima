@@ -1,0 +1,71 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 20, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "msvc-release",
+      "displayName": "MSVC Release",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/out/build/msvc-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "wsl-gcc-release",
+      "displayName": "WSL GCC Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/wsl-gcc-release",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "wsl-clang-release",
+      "displayName": "WSL Clang Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/wsl-clang-release",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_TESTING": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "msvc-release",
+      "configurePreset": "msvc-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "wsl-gcc-release",
+      "configurePreset": "wsl-gcc-release"
+    },
+    {
+      "name": "wsl-clang-release",
+      "configurePreset": "wsl-clang-release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "msvc-release",
+      "configurePreset": "msvc-release",
+      "configuration": "Release",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "wsl-gcc-release",
+      "configurePreset": "wsl-gcc-release",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "wsl-clang-release",
+      "configurePreset": "wsl-clang-release",
+      "output": { "outputOnFailure": true }
+    }
+  ]
+}
