@@ -13,10 +13,10 @@
       }
     },
     {
-      "name": "wsl-gcc-release",
-      "displayName": "WSL GCC Release",
+      "name": "linux-gcc-release",
+      "displayName": "Linux GCC Release",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/wsl-gcc-release",
+      "binaryDir": "${sourceDir}/out/build/linux-gcc-release",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "g++",
         "CMAKE_BUILD_TYPE": "Release",
@@ -24,10 +24,10 @@
       }
     },
     {
-      "name": "wsl-clang-release",
-      "displayName": "WSL Clang Release",
+      "name": "linux-clang-release",
+      "displayName": "Linux Clang Release",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/wsl-clang-release",
+      "binaryDir": "${sourceDir}/out/build/linux-clang-release",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "clang++",
         "CMAKE_BUILD_TYPE": "Release",
@@ -42,12 +42,12 @@
       "configuration": "Release"
     },
     {
-      "name": "wsl-gcc-release",
-      "configurePreset": "wsl-gcc-release"
+      "name": "linux-gcc-release",
+      "configurePreset": "linux-gcc-release"
     },
     {
-      "name": "wsl-clang-release",
-      "configurePreset": "wsl-clang-release"
+      "name": "linux-clang-release",
+      "configurePreset": "linux-clang-release"
     }
   ],
   "testPresets": [
@@ -58,13 +58,13 @@
       "output": { "outputOnFailure": true }
     },
     {
-      "name": "wsl-gcc-release",
-      "configurePreset": "wsl-gcc-release",
+      "name": "linux-gcc-release",
+      "configurePreset": "linux-gcc-release",
       "output": { "outputOnFailure": true }
     },
     {
-      "name": "wsl-clang-release",
-      "configurePreset": "wsl-clang-release",
+      "name": "linux-clang-release",
+      "configurePreset": "linux-clang-release",
       "output": { "outputOnFailure": true }
     }
   ]
