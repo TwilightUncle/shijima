@@ -1,0 +1,40 @@
+name: Install GCC
+description: Install GCC
+
+inputs:
+  version:
+    required: false
+    type: string
+    default: latest
+
+runs:
+  using: composite
+  steps:
+    # Linux以外のOSで走っている場合、呼び出し元が誤りなのでエラーを出す
+    - name: Guard Linux Only
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ "${{ runner.os }}" != "Linux" ]; then
+          echo "::error title=Unsupported runner OS::This action supports Linux runners only. runner.os=${{ runner.os }}. Fix your workflow (use runs-on: ubuntu-* or gate with if: runner.os == 'Linux')."
+          exit 1
+        fi
+
+    - name: Install GCC/G++
+      shell: bash
+      run: |
+        set -euo pipefail
+        V="${{ inputs.gcc_version }}"
+
+        sudo apt-get update
+        sudo apt-get install -y "gcc-${V}" "g++-${V}"
+
+        # gcc/g++ を指定バージョンへ切替(g++ も追随させる）
+        sudo update-alternatives --install /usr/bin/gcc gcc "/usr/bin/gcc-${V}" 100 \
+          --slave /usr/bin/g++ g++ "/usr/bin/g++-${V}"
+
+        # 既に別バージョンが登録済みの場合もあるので、明示的に選択
+        sudo update-alternatives --set gcc "/usr/bin/gcc-${V}"
+
+        gcc --version
+        g++ --version
