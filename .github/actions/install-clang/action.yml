@@ -67,14 +67,13 @@ runs:
         set -euo pipefail
         v="${{ inputs.version }}"
 
-        # ここで見るのは「現時点の APT インデックスに clang-$v が存在するか」
-        # （標準 repo にあれば基本ここで拾える）
-        if apt-cache show "clang-${v}" >/dev/null 2>&1; then
+        # APT の現状構成で「実際にインストール可能か」を dry-run で判定する
+        if sudo apt-get install -y -s "clang-${v}" "clang++-${v}" "lld-${v}" >/dev/null 2>&1; then
           echo "source=ubuntu" >> "$GITHUB_OUTPUT"
-          echo "clang-${v} is available in current APT index -> use ubuntu repo"
+          echo "clang-${v}/lld-${v} are installable from current APT sources -> use ubuntu repo"
         else
           echo "source=llvm" >> "$GITHUB_OUTPUT"
-          echo "clang-${v} is NOT available in current APT index -> use llvm.sh"
+          echo "clang-${v}/lld-${v} are NOT installable from current APT sources -> use llvm.sh"
         fi
 
     - name: Setup LLVM apt repo via llvm.sh (only if needed)
