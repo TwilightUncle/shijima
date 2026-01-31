@@ -13,23 +13,43 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Windows (MSVC)
-          - os: windows-latest
+          # Windows: MSVC（メジャーを厳密固定しづらいので runner を固定推奨）
+          - os: windows-2022
             preset: msvc-release
+            kind: msvc
 
-          # Ubuntu (GCC / Clang)
-          - os: ubuntu-latest
+          # Ubuntu: GCC major
+          - os: ubuntu-22.04
             preset: linux-gcc-release
-            install: sudo apt-get update && sudo apt-get install -y ninja-build g++ cmake
+            kind: gcc
+            version: "11"
+          - os: ubuntu-22.04
+            preset: linux-gcc-release
+            kind: gcc
+            version: "12"
+          - os: ubuntu-22.04
+            preset: linux-gcc-release
+            kind: gcc
+            version: "13"
 
-          - os: ubuntu-latest
-            preset: linux-clang-release
-            install: sudo apt-get update && sudo apt-get install -y ninja-build clang cmake
+          # Ubuntu: Clang major
+          # - os: ubuntu-22.04
+          #   preset: linux-clang-release
+          #   kind: clang
+          #   version: "15.0"
+          # - os: ubuntu-22.04
+          #   preset: linux-clang-release
+          #   kind: clang
+          #   version: "16.0"
+          # - os: ubuntu-22.04
+          #   preset: linux-clang-release
+          #   kind: clang
+          #   version: "17.0"
 
-          # macOS (Clang)
+          # macOS: Clang（Xcode 付属 clang のため “厳密なメジャー固定” は難しめ）
           - os: macos-latest
             preset: linux-clang-release
-            install: brew update && brew install ninja cmake
+            kind: appleclang
 
     runs-on: ${{ matrix.os }}
 
@@ -37,9 +57,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install deps (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: ${{ matrix.install }}
+      - name: Install Ninja (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build cmake
+
+      - name: Install Ninja (macOS)
+        if: runner.os == 'macOS'
+        run: brew update && brew install ninja cmake
+
+      - name: Install GCC for Linux
+        if: runner.os == 'Linux' && matrix.kind == "gcc"
+        uses: "./github/actions/install-gcc"
+        with:
+          version: ${{ matrix.version }}
 
       # （任意）WindowsでCMakeが見つからないケースへの保険
       # 通常は runner でCMake/VSが入っているため不要なことが多いです。 :contentReference[oaicite:2]{index=2}
