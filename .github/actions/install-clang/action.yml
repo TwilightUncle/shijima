@@ -15,6 +15,9 @@ outputs:
   codename:
     description: "Ubuntu codename (from check-ubuntu)"
     value: ${{ steps.os.outputs.codename }}
+  source:
+    description: "Install source used: ubuntu or llvm"
+    value: ${{ steps.decide.outputs.source }}
   clang_bin_name:
     value: "clang-${{ inputs.version }}"
   clangxx_bin_name:
@@ -30,13 +33,24 @@ runs:
     - name: Show OS info (outputs example)
       shell: bash
       run: |
+        echo "--- Show OS info ---"
         echo "id=${{ steps.os.outputs.id }}"
         echo "version_id=${{ steps.os.outputs.version_id }}"
         echo "codename=${{ steps.os.outputs.codename }}"
 
+    # --- 共通依存 ---
+    - name: Install base packages
+      shell: bash
+      run: |
+        echo "--- Install base packages ---"
+        set -euo pipefail
+        sudo apt-get update
+        sudo apt-get install -y ca-certificates curl gnupg
+
     - name: Validate supported codename
       shell: bash
       run: |
+        echo "--- Validate supported codename ---"
         set -euo pipefail
         c="${{ steps.os.outputs.codename }}"
         if ! grep -qw "$c" <<< "${{ inputs.supported_ubuntu_codenames }}"; then
@@ -45,30 +59,44 @@ runs:
           exit 1
         fi
 
-    - name: Add LLVM apt repository
+    - name: Decide install source (ubuntu repo or llvm.sh)
+      id: decide
       shell: bash
       run: |
+        echo "--- Decide install source (ubuntu repo or llvm.sh) ---"
         set -euo pipefail
-        c="${{ steps.os.outputs.codename }}"
+        v="${{ inputs.version }}"
 
-        sudo apt-get update
-        sudo apt-get install -y curl gnupg ca-certificates
+        # APT の現状構成で「実際にインストール可能か」を dry-run で判定する
+        if sudo apt-get install -y -s "clang-${v}" "clang++-${v}" "lld-${v}" >/dev/null 2>&1; then
+          echo "source=ubuntu" >> "$GITHUB_OUTPUT"
+          echo "clang-${v}/lld-${v} are installable from current APT sources -> use ubuntu repo"
+        else
+          echo "source=llvm" >> "$GITHUB_OUTPUT"
+          echo "clang-${v}/lld-${v} are NOT installable from current APT sources -> use llvm.sh"
+        fi
 
-        # gpg --dearmor で keyring 化して保存
-        curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key \
-          | sudo gpg --dearmor -o /usr/share/keyrings/llvm.gpg
+    - name: Setup LLVM apt repo via llvm.sh (only if needed)
+      if: ${{ steps.decide.outputs.source == 'llvm' }}
+      shell: bash
+      run: |
+        echo "--- Setup LLVM apt repo via llvm.sh (only if needed) ---"
+        set -euo pipefail
+        v="${{ inputs.version }}"
 
-        # 読み取り可能に（念のため）
-        sudo chmod a+r /usr/share/keyrings/llvm.gpg
+        curl -fsSL https://apt.llvm.org/llvm.sh -o llvm.sh
+        chmod +x llvm.sh
 
-        echo "deb [signed-by=/usr/share/keyrings/llvm.gpg] https://apt.llvm.org/${c}/ llvm-toolchain-${c} main" \
-          | sudo tee /etc/apt/sources.list.d/llvm.list
+        # llvm.sh が Ubuntu codename 判定 + key/repo 設定を行う
+        sudo ./llvm.sh "$v"
 
+        # llvm.sh 実行後に index 更新されている想定だが、念のため
         sudo apt-get update
 
     - name: Install Clang
       shell: bash
       run: |
+        echo "--- Install Clang ---"
         set -euo pipefail
         v="${{ inputs.version }}"
 
@@ -78,6 +106,7 @@ runs:
     - name: Set alternatives (clang, clang++)
       shell: bash
       run: |
+        echo "--- Set alternatives ---"
         set -euo pipefail
         v="${{ inputs.version }}"
 

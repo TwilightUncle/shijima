@@ -41,15 +41,15 @@ jobs:
           - os: ubuntu-22.04
             preset: linux-clang-release
             kind: clang
-            version: "15.0"
+            version: "15"
           - os: ubuntu-22.04
             preset: linux-clang-release
             kind: clang
-            version: "16.0"
+            version: "16"
           - os: ubuntu-22.04
             preset: linux-clang-release
             kind: clang
-            version: "17.0"
+            version: "17"
 
           # macOS: Clang（Xcode 付属 clang のため “厳密なメジャー固定” は難しめ）
           - os: macos-latest
