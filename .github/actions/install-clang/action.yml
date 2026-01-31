@@ -66,6 +66,11 @@ runs:
 
         sudo apt-get update
 
+        # 出力確認用
+        apt-cache policy clang-16 || true
+        apt-cache search '^clang-16$' || true
+
+
     - name: Install Clang
       shell: bash
       run: |
