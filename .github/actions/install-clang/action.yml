@@ -52,12 +52,16 @@ runs:
         c="${{ steps.os.outputs.codename }}"
 
         sudo apt-get update
-        sudo apt-get install -y wget gnupg ca-certificates
+        sudo apt-get install -y curl gnupg ca-certificates
 
-        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key \
-          | sudo tee /usr/share/keyrings/llvm.gpg > /dev/null
+        # gpg --dearmor で keyring 化して保存
+        curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key \
+          | sudo gpg --dearmor -o /usr/share/keyrings/llvm.gpg
 
-        echo "deb [signed-by=/usr/share/keyrings/llvm.gpg] http://apt.llvm.org/${c}/ llvm-toolchain-${c} main" \
+        # 読み取り可能に（念のため）
+        sudo chmod a+r /usr/share/keyrings/llvm.gpg
+
+        echo "deb [signed-by=/usr/share/keyrings/llvm.gpg] https://apt.llvm.org/${c}/ llvm-toolchain-${c} main" \
           | sudo tee /etc/apt/sources.list.d/llvm.list
 
         sudo apt-get update
