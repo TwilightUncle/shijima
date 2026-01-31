@@ -30,24 +30,26 @@ jobs:
             preset: linux-gcc-release
             kind: gcc
             version: "12"
-          - os: ubuntu-22.04
+          # 22.04だとppaが走り、遅い
+          - os: ubuntu-24.04
+          # - os: ubuntu-22.04
             preset: linux-gcc-release
             kind: gcc
             version: "13"
 
           # Ubuntu: Clang major
-          # - os: ubuntu-22.04
-          #   preset: linux-clang-release
-          #   kind: clang
-          #   version: "15.0"
-          # - os: ubuntu-22.04
-          #   preset: linux-clang-release
-          #   kind: clang
-          #   version: "16.0"
-          # - os: ubuntu-22.04
-          #   preset: linux-clang-release
-          #   kind: clang
-          #   version: "17.0"
+          - os: ubuntu-22.04
+            preset: linux-clang-release
+            kind: clang
+            version: "15.0"
+          - os: ubuntu-22.04
+            preset: linux-clang-release
+            kind: clang
+            version: "16.0"
+          - os: ubuntu-22.04
+            preset: linux-clang-release
+            kind: clang
+            version: "17.0"
 
           # macOS: Clang（Xcode 付属 clang のため “厳密なメジャー固定” は難しめ）
           - os: macos-latest
@@ -71,6 +73,12 @@ jobs:
       - name: Install GCC for Linux
         if: runner.os == 'Linux' && matrix.kind == 'gcc'
         uses: "./.github/actions/install-gcc"
+        with:
+          version: ${{ matrix.version }}
+
+      - name: Install Clang for Linux
+        if: runner.os == 'Linux' && matrix.kind == 'clang'
+        uses: "./.github/actions/install-clang"
         with:
           version: ${{ matrix.version }}
 

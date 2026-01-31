@@ -1,0 +1,48 @@
+name: "Check Ubuntu"
+description: "Fail unless running on Ubuntu. Exports Ubuntu codename/version as outputs."
+outputs:
+  id:
+    description: "OS ID (should be ubuntu)"
+    value: ${{ steps.detect.outputs.id }}
+  version_id:
+    description: "Ubuntu VERSION_ID (e.g. 22.04)"
+    value: ${{ steps.detect.outputs.version_id }}
+  codename:
+    description: "Ubuntu VERSION_CODENAME (e.g. jammy)"
+    value: ${{ steps.detect.outputs.codename }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: detect
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        if [ ! -r /etc/os-release ]; then
+          echo "::error::/etc/os-release not found. This action supports Ubuntu runner only."
+          exit 1
+        fi
+
+        . /etc/os-release
+
+        if [ "${ID:-}" != "ubuntu" ]; then
+          echo "::error::Ubuntu only. Detected ID=${ID:-unknown}"
+          exit 1
+        fi
+
+        if [ -z "${VERSION_ID:-}" ]; then
+          echo "::error::VERSION_ID is empty"
+          exit 1
+        fi
+
+        if [ -z "${VERSION_CODENAME:-}" ]; then
+          echo "::error::VERSION_CODENAME is empty"
+          exit 1
+        fi
+
+        {
+          echo "id=${ID}"
+          echo "version_id=${VERSION_ID}"
+          echo "codename=${VERSION_CODENAME}"
+        } >> "$GITHUB_OUTPUT"

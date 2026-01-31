@@ -1,0 +1,82 @@
+name: "Install Clang (LLVM apt)"
+description: "Install specific Clang version from apt.llvm.org based on Ubuntu codename."
+
+inputs:
+  version:
+    description: "Clang major version (e.g. 19)"
+    required: false
+    default: "latest"
+  supported_ubuntu_codenames:
+    description: "Space-separated supported Ubuntu codenames (e.g. 'focal jammy noble')"
+    required: false
+    default: "focal jammy noble"
+
+outputs:
+  codename:
+    description: "Ubuntu codename (from check-ubuntu)"
+    value: ${{ steps.os.outputs.codename }}
+  clang_bin_name:
+    value: "clang-${{ inputs.version }}"
+  clangxx_bin_name:
+    value: "clang++-${{ inputs.version }}"
+
+runs:
+  using: composite
+  steps:
+    - name: Check Ubuntu
+      id: os
+      uses: ./.github/actions/check-ubuntu
+
+    - name: Show OS info (outputs example)
+      run: |
+        echo "id=${{ steps.os.outputs.id }}"
+        echo "version_id=${{ steps.os.outputs.version_id }}"
+        echo "codename=${{ steps.os.outputs.codename }}"
+
+    - name: Validate supported codename
+      shell: bash
+      run: |
+        set -euo pipefail
+        c="${{ steps.os.outputs.codename }}"
+        if ! grep -qw "$c" <<< "${{ inputs.supported_ubuntu_codenames }}"; then
+          echo "::error::Unsupported Ubuntu codename: $c"
+          echo "Supported: ${{ inputs.supported_ubuntu_codenames }}"
+          exit 1
+        fi
+
+    - name: Add LLVM apt repository
+      shell: bash
+      run: |
+        set -euo pipefail
+        c="${{ steps.os.outputs.codename }}"
+
+        sudo apt-get update
+        sudo apt-get install -y wget gnupg ca-certificates
+
+        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key \
+          | sudo tee /usr/share/keyrings/llvm.gpg > /dev/null
+
+        echo "deb [signed-by=/usr/share/keyrings/llvm.gpg] http://apt.llvm.org/${c}/ llvm-toolchain-${c} main" \
+          | sudo tee /etc/apt/sources.list.d/llvm.list
+
+        sudo apt-get update
+
+    - name: Install Clang
+      shell: bash
+      run: |
+        set -euo pipefail
+        v="${{ inputs.version }}"
+
+        sudo apt-get install -y "clang-${v}" "clang++-${v}" "lld-${v}"
+        "/usr/bin/clang-${v}" --version
+
+    - name: Set alternatives (clang, clang++)
+      shell: bash
+      run: |
+        set -euo pipefail
+        v="${{ inputs.version }}"
+
+        sudo update-alternatives --install /usr/bin/clang clang "/usr/bin/clang-${v}" 100
+        sudo update-alternatives --install /usr/bin/clang++ clang++ "/usr/bin/clang++-${v}" 100
+
+        clang --version
