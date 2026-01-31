@@ -62,16 +62,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check Ubuntu
-        id: os
-        uses: ./.github/actions/check-ubuntu
-
-      - name: Show OS info (outputs example)
-        run: |
-          echo "id=${{ steps.os.outputs.id }}"
-          echo "version_id=${{ steps.os.outputs.version_id }}"
-          echo "codename=${{ steps.os.outputs.codename }}"
-
       - name: Install Ninja (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y ninja-build cmake
