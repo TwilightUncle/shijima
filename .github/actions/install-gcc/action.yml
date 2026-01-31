@@ -24,7 +24,7 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        V="${{ inputs.gcc_version }}"
+        V="${{ inputs.version }}"
 
         sudo apt-get update
         sudo apt-get install -y "gcc-${V}" "g++-${V}"
