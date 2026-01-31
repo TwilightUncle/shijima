@@ -83,7 +83,7 @@ runs:
       run: |
         echo "--- Setup LLVM apt repo via llvm.sh (only if needed) ---"
         set -euo pipefail
-        v="${{ inputs.clang_version }}"
+        v="${{ inputs.version }}"
 
         curl -fsSL https://apt.llvm.org/llvm.sh -o llvm.sh
         chmod +x llvm.sh
