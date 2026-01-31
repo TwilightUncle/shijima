@@ -28,6 +28,7 @@ runs:
       uses: ./.github/actions/check-ubuntu
 
     - name: Show OS info (outputs example)
+      shell: bash
       run: |
         echo "id=${{ steps.os.outputs.id }}"
         echo "version_id=${{ steps.os.outputs.version_id }}"
