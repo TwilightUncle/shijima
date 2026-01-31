@@ -6,6 +6,9 @@ inputs:
     required: false
     type: string
     default: latest
+  allow_ppa:
+    required: false
+    default: "true" 
 
 runs:
   using: composite
@@ -25,6 +28,7 @@ runs:
       run: |
         set -euo pipefail
         V="${{ inputs.version }}"
+        ALLOW_PPA="${{ inputs.allow_ppa }}"
 
         sudo apt-get update
         
