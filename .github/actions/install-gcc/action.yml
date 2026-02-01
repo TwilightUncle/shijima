@@ -90,7 +90,7 @@ runs:
       run: |
         echo "--- Set alternatives ---"
         set -euo pipefail
-        v="${{ inputs.version }}"
+        V="${{ inputs.version }}"
 
         # gcc/g++ を指定バージョンへ切替(g++ も追随させる）
         sudo update-alternatives --install /usr/bin/gcc gcc "/usr/bin/gcc-${V}" 100 \
