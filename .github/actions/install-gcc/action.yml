@@ -10,18 +10,70 @@ inputs:
     required: false
     default: "true" 
 
+outputs:
+  codename:
+    description: "Ubuntu codename (from check-ubuntu)"
+    value: ${{ steps.os.outputs.codename }}
+  source:
+    description: "Install source used: ubuntu or ppa"
+    value: ${{ steps.decide.outputs.source }}
+  gcc_bin_name:
+    value: "gcc-${{ inputs.version }}"
+  gxx_bin_name:
+    value: "g++-${{ inputs.version }}"
+
 runs:
   using: composite
   steps:
-    # Linux以外のOSで走っている場合、呼び出し元が誤りなのでエラーを出す
-    - name: Guard Linux Only
+    - name: Check Ubuntu
+      id: os
+      uses: ./.github/actions/check-ubuntu
+
+    - name: Show OS info (outputs example)
       shell: bash
       run: |
+        echo "--- Show OS info ---"
+        echo "id=${{ steps.os.outputs.id }}"
+        echo "version_id=${{ steps.os.outputs.version_id }}"
+        echo "codename=${{ steps.os.outputs.codename }}"
+
+    - name: Decide install source (ubuntu repo or ppa)
+      id: decide
+      shell: bash
+      run: |
+        echo "--- Decide install source (ubuntu repo or ppa) ---"
         set -euo pipefail
-        if [ "${{ runner.os }}" != "Linux" ]; then
-          echo "::error title=Unsupported runner OS::This action supports Linux runners only. runner.os=${{ runner.os }}. Fix your workflow (use runs-on: ubuntu-* or gate with if: runner.os == 'Linux')."
+        v="${{ inputs.version }}"
+
+        # APT の現状構成で「実際にインストール可能か」を dry-run で判定する
+        if sudo apt-get install -y -s "gcc-${v}" "g++-${v}" >/dev/null 2>&1; then
+          echo "source=ubuntu" >> "$GITHUB_OUTPUT"
+          echo "gcc-${v}/g++-${v} are installable from current APT sources -> use ubuntu repo"
+        else
+          echo "source=ppa" >> "$GITHUB_OUTPUT"
+          echo "gcc-${v}/g++-${v} are NOT installable from current APT sources -> use ppa"
+        fi
+
+        # ついでにアップデートしておく
+        sudo apt-get update
+
+    - name: Setup LLVM apt repo via ppa (only if needed)
+      if: ${{ steps.decide.outputs.source == 'ppa' }}
+      shell: bash
+      run: |
+        echo "--- Setup LLVM apt repo via ppa (only if needed) ---"
+        set -euo pipefail
+        V="${{ inputs.version }}"
+        ALLOW_PPA="${{ inputs.allow_ppa }}"
+
+        if [ "${ALLOW_PPA}" != "true" ]; then
+          echo "::error title=GCC package not found::gcc-${V}/g++-${V} not available in default repos, and allow_ppa=false."
           exit 1
         fi
+
+        # PPA を追加
+        sudo apt-get install -y software-properties-common
+        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 
     - name: Install GCC/G++
       shell: bash
@@ -30,26 +82,15 @@ runs:
         V="${{ inputs.version }}"
         ALLOW_PPA="${{ inputs.allow_ppa }}"
 
-        sudo apt-get update
-        
-        # 最新版は存在しない場合がある
-        try_install() {
-          sudo apt-get install -y "gcc-${V}" "g++-${V}"
-        }
+        sudo apt-get install -y "gcc-${V}" "g++-${V}"
+        "/usr/bin/gcc-${v}" --version
 
-        # インストール失敗時
-        if ! try_install; then
-          if [ "${ALLOW_PPA}" != "true" ]; then
-            echo "::error title=GCC package not found::gcc-${V}/g++-${V} not available in default repos, and allow_ppa=false."
-            exit 1
-          fi
-
-          # PPA を追加して再試行
-          sudo apt-get install -y software-properties-common
-          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-          sudo apt-get update
-          try_install
-        fi
+    - name: Set alternatives (clang, clang++)
+      shell: bash
+      run: |
+        echo "--- Set alternatives ---"
+        set -euo pipefail
+        v="${{ inputs.version }}"
 
         # gcc/g++ を指定バージョンへ切替(g++ も追随させる）
         sudo update-alternatives --install /usr/bin/gcc gcc "/usr/bin/gcc-${V}" 100 \
