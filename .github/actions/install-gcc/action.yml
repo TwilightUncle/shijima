@@ -83,7 +83,7 @@ runs:
         ALLOW_PPA="${{ inputs.allow_ppa }}"
 
         sudo apt-get install -y "gcc-${V}" "g++-${V}"
-        "/usr/bin/gcc-${v}" --version
+        "/usr/bin/gcc-${V}" --version
 
     - name: Set alternatives (clang, clang++)
       shell: bash
