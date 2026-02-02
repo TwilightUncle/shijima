@@ -1,0 +1,28 @@
+# Jsonファイル読み込み
+name: Load Json File
+description: Load Json File
+
+inputs:
+  file_path:
+    description: "Target Json file path"
+    required: true
+    type: string
+
+outputs:
+  json: 
+    description: "Json data"
+    value: ${{ steps.set-json.outputs.json }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+
+    - id: set-json
+      shell: bash
+      run: |
+        FILE_PATH=${{ inputs.file_path }}
+
+        # JSONは1行にして outputs に流す（改行トラブル回避）
+        json="$(python3 -c 'import json; import pathlib; print(json.dumps(json.load(open("${FILE_PATH}","r",encoding="utf-8"))))')"
+        echo "json=$json" >> "$GITHUB_OUTPUT"
