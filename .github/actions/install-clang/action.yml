@@ -113,4 +113,8 @@ runs:
         sudo update-alternatives --install /usr/bin/clang clang "/usr/bin/clang-${v}" 100
         sudo update-alternatives --install /usr/bin/clang++ clang++ "/usr/bin/clang++-${v}" 100
 
+        # 既に別バージョンが登録済みの場合もあるので、明示的に選択
+        sudo update-alternatives --set clang "/usr/bin/clang-${v}"
+        sudo update-alternatives --set clang++ "/usr/bin/clang++-${v}"
+
         clang --version
