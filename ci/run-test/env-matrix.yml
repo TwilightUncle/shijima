@@ -1,0 +1,45 @@
+# CI matrix definition
+# 古いバージョンでテストが通らなかった場合は、コメントアウトしサポート対象外の旨記載すること
+
+include:
+  # --- Windows / MSVC ---
+  - os: windows-2022
+    preset: msvc-release
+    kind: msvc
+
+  # --- Linux / GCC ---
+  - os: ubuntu-22.04
+    preset: linux-gcc-release
+    kind: gcc
+    version: "11"
+
+  - os: ubuntu-22.04
+    preset: linux-gcc-release
+    kind: gcc
+    version: "12"
+
+  - os: ubuntu-22.04
+    preset: linux-gcc-release
+    kind: gcc
+    version: "13"
+
+  # --- Linux / Clang ---
+  - os: ubuntu-22.04
+    preset: linux-clang-release
+    kind: clang
+    version: "15"
+
+  - os: ubuntu-22.04
+    preset: linux-clang-release
+    kind: clang
+    version: "16"
+
+  - os: ubuntu-24.04
+    preset: linux-clang-release
+    kind: clang
+    version: "17"
+
+  # --- macOS ---
+  - os: macos-latest
+    preset: linux-clang-release
+    kind: appleclang

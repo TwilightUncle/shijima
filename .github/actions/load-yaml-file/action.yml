@@ -1,0 +1,37 @@
+# Yamlファイルを読み込み、jsonに変換
+name: Load Yaml File
+description: Load Json File
+
+inputs:
+  file_path:
+    description: "Target Yaml file path"
+    required: true
+    type: string
+
+outputs:
+  json: 
+    description: "Json data"
+    value: ${{ steps.set-json.outputs.json }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+
+    - id: set-json
+      shell: bash
+      run: |
+          python3 - << 'EOF'
+          import os, yaml, json
+          from pathlib import Path
+
+          data = yaml.safe_load(Path("${{ inputs.file_path }}").read_text(encoding="utf-8"))
+          # 1行JSONにして outputs へ
+          matrix_json = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
+
+          # GitHub Actions の outputs は GITHUB_OUTPUT に "key=value" で書く
+          key = "json"
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f :
+            print("{0}={1}".format(key, matrix_json), file=f)
+
+          EOF

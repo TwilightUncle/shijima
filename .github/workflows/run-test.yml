@@ -22,9 +22,9 @@ jobs:
 
       - name: Set Matrix
         id: set-matrix
-        uses: "./.github/actions/load-json-file"
+        uses: "./.github/actions/load-yaml-file"
         with:
-          file_path: "ci/run-test/env-matrix.json"
+          file_path: "ci/run-test/env-matrix.yml"
 
   # testまでの一連の処理
   build-test:
