@@ -30,7 +30,8 @@ runs:
           matrix_json = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
 
           # GitHub Actions の outputs は GITHUB_OUTPUT に "key=value" で書く
-          out = Path("${GITHUB_OUTPUT}")
-          out.write_text(out.read_text(encoding="utf-8") + f"json={matrix_json}\n", encoding="utf-8")
+          key = "json"
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f :
+            print("{0}={1}".format(key, matrix_json), file=f)
 
           EOF
