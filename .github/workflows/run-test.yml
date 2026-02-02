@@ -63,18 +63,6 @@ jobs:
       #   if: runner.os == 'Windows'
       #   uses: lukka/get-cmake@latest
 
-      - name: Show compiler commands
-        if: runner.os == 'Linux' && matrix.kind == 'clang'
-        run: |
-          which clang || true
-          which clang++ || true
-          clang --version || true
-          clang++ --version || true
-          which clang-17 || true
-          clang-17 --version || true
-
-          cmake --preset ${{ matrix.preset }} -N -LAH | sed -n '1,200p' || true
-
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
 
