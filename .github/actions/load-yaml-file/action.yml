@@ -22,7 +22,7 @@ runs:
       shell: bash
       run: |
           python3 - << 'EOF'
-          import yaml, json
+          import os, yaml, json
           from pathlib import Path
 
           data = yaml.safe_load(Path("${{ inputs.file_path }}").read_text(encoding="utf-8"))
