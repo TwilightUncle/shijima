@@ -11,53 +11,28 @@ permissions:
   contents: read
 
 jobs:
+  # jsonファイルより、テスト対象の環境を読み込む
+  load-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.json }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set Matrix
+        id: set-matrix
+        uses: "./.github/actions/load-json-file"
+        with:
+          file_path: "ci/run-test/env-matrix.json"
+
+  # testまでの一連の処理
   build-test:
+    needs: load-matrix
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          # Windows: MSVC（メジャーを厳密固定しづらいので runner を固定推奨）
-          - os: windows-2022
-            preset: msvc-release
-            kind: msvc
-
-          # Ubuntu: GCC major
-          - os: ubuntu-22.04
-            preset: linux-gcc-release
-            kind: gcc
-            version: "11"
-          - os: ubuntu-22.04
-            preset: linux-gcc-release
-            kind: gcc
-            version: "12"
-          # 22.04だとppaが走り、遅い
-          - os: ubuntu-24.04
-          # - os: ubuntu-22.04
-            preset: linux-gcc-release
-            kind: gcc
-            version: "13"
-
-          # Ubuntu: Clang major
-          - os: ubuntu-22.04
-            preset: linux-clang-release
-            kind: clang
-            version: "15"
-          - os: ubuntu-22.04
-            preset: linux-clang-release
-            kind: clang
-            version: "16"
-          - os: ubuntu-22.04
-            preset: linux-clang-release
-            kind: clang
-            version: "17"
-
-          # macOS: Clang（Xcode 付属 clang のため “厳密なメジャー固定” は難しめ）
-          - os: macos-latest
-            preset: linux-clang-release
-            kind: appleclang
-
+      matrix: ${{ fromJSON(needs.load-matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
