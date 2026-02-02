@@ -26,8 +26,11 @@ runs:
           from pathlib import Path
 
           data = yaml.safe_load(Path("${{ inputs.file_path }}").read_text(encoding="utf-8"))
-          print(json.dumps(data))
+          # 1行JSONにして outputs へ
+          matrix_json = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
+
+          # GitHub Actions の outputs は GITHUB_OUTPUT に "key=value" で書く
+          out = Path("${GITHUB_OUTPUT}")
+          out.write_text(out.read_text(encoding="utf-8") + f"json={matrix_json}\n", encoding="utf-8")
+
           EOF
-          | while read line; do
-              echo "json=$line" >> "$GITHUB_OUTPUT"
-            done
